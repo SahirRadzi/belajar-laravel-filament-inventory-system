@@ -27,19 +27,7 @@ class CategoryResource extends Resource
     public static function form(Form $form): Form
     {
         return $form
-            ->schema([
-                Forms\Components\Section::make()
-                    ->schema([
-                        Forms\Components\TextInput::make('name')
-                        ->label('Category Name')
-                        ->required(),
-                    Forms\Components\Textarea::make('description')
-                        ->label('Description'),
-                    Forms\Components\KeyValue::make('data')
-                        ->label('Extra Attributes'),
-                    ])
-
-            ]);
+            ->schema(self::getCategoryForm());
     }
 
     public static function table(Table $table): Table
@@ -81,6 +69,22 @@ class CategoryResource extends Resource
             'index' => Pages\ListCategories::route('/'),
             'create' => Pages\CreateCategory::route('/create'),
             'edit' => Pages\EditCategory::route('/{record}/edit'),
+        ];
+    }
+
+    public static function getCategoryForm()
+    {
+        return [
+            Forms\Components\Section::make()
+                    ->schema([
+                        Forms\Components\TextInput::make('name')
+                        ->label('Category Name')
+                        ->required(),
+                    Forms\Components\Textarea::make('description')
+                        ->label('Description'),
+                    Forms\Components\KeyValue::make('data')
+                        ->label('Extra Attributes'),
+                    ])
         ];
     }
 }

@@ -30,19 +30,7 @@ class UnitResource extends Resource
         return $form
             ->schema([
                 Forms\Components\Section::make()
-                ->schema([
-                    Forms\Components\TextInput::make('name')
-                    ->label('Unit Name')
-                    ->helperText(new HtmlString('<strong>* Example:</strong> Kilogram, gram, meter'))
-                    ->required(),
-                Forms\Components\TextInput::make('key')
-                    ->label('Short Unit')
-                    ->helperText(new HtmlString('<strong>* Info:</strong> Units in short form: Kg, g, m'))
-                    ->required()
-                    ->unique(ignoreRecord:true),
-                Forms\Components\KeyValue::make('data')
-                    ->label('Extra Attributes'),
-                ])
+                ->schema(self::getUnitForm())
             ]);
     }
 
@@ -85,6 +73,23 @@ class UnitResource extends Resource
             'index' => Pages\ListUnits::route('/'),
             'create' => Pages\CreateUnit::route('/create'),
             'edit' => Pages\EditUnit::route('/{record}/edit'),
+        ];
+    }
+
+    public static function getUnitForm()
+    {
+        return [
+            Forms\Components\TextInput::make('name')
+                ->label('Unit Name')
+                ->helperText(new HtmlString('<strong>* Example:</strong> Kilogram, gram, meter'))
+                ->required(),
+            Forms\Components\TextInput::make('key')
+                ->label('Short Unit')
+                ->helperText(new HtmlString('<strong>* Info:</strong> Units in short form: Kg, g, m'))
+                ->required()
+                ->unique(ignoreRecord:true),
+            Forms\Components\KeyValue::make('data')
+                ->label('Extra Attributes'),
         ];
     }
 }

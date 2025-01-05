@@ -65,87 +65,100 @@ class PurchaseResource extends Resource
                 Forms\Components\Section::make('Product Details')
                     ->description('select the list product')
                     ->schema([
-                            Forms\Components\Repeater::make('Product')
+                            Forms\Components\Repeater::make('product')
+                            ->hiddenLabel()
+                            ->columns([
+                                'md' =>10,
+                            ])
                             ->schema([
 
                                                                 Forms\Components\Select::make('product_id')
+                                                                    ->label('Name of Product')
                                                                     ->options(Product::pluck('name','id')->toArray())
                                                                     ->searchable()
                                                                     ->required()
+                                                                    ->columnSpan([
+                                                                        'md' => 5
+                                                                    ])
                                                                     ->createOptionForm(function(){
-                                                                        //     Forms\Components\TextInput::make('name')
-                                                                        //     ->label('Name')
-                                                                        //     ->placeholder('Enter name of product')
-                                                                        //     ->required(),
-                                                                        // Forms\Components\TextInput::make('code')
-                                                                        //     ->label('Code')
-                                                                        //     ->placeholder('Enter 8 characters code of product')
-                                                                        //     ->maxLength(8)
-                                                                        //     ->required(),
-                                                                        // Forms\Components\Select::make('category_id')
-                                                                        //     ->placeholder('-- Choose your category of product --')
-                                                                        //     ->options(function(){
-                                                                        //         return Category::pluck('name','id')->toArray();
-                                                                        //     })
-                                                                        //     ->searchable()
-                                                                        //     ->required(),
-                                                                        // Forms\Components\Select::make('unit_id')
-                                                                        //     ->placeholder('-- Choose your unit of product --')
-                                                                        //     ->options(function(){
-                                                                        //         return Unit::pluck('name','id')->toArray();
-                                                                        //     })
-                                                                        //     ->searchable()
-                                                                        //     ->required(),
-                                                                        // Forms\Components\TextInput::make('price')
-                                                                        //     ->label('Price (RM)')
-                                                                        //     ->placeholder('Enter price of product')
-                                                                        //     ->required()
-                                                                        //     ->numeric()
-                                                                        //     ->step(0.01),
-                                                                        // Forms\Components\TextInput::make('quantity')
-                                                                        //     ->label('Quantity')
-                                                                        //     ->placeholder('Enter quantity of product')
-                                                                        //     ->numeric()
-                                                                        //     ->required(),
-                                                                        // Forms\Components\TextInput::make('safety_stock')
-                                                                        //     ->label('Safety Stock')
-                                                                        //     ->placeholder('Enter safety stock of product')
-                                                                        //     ->helperText(new HtmlString('<strong>Info:</strong> Minimum stock to be stored.'))
-                                                                        //     ->numeric(),
-
+                                                                        $tenantField = [
+                                                                            Forms\Components\Hidden::make('tenant_id')
+                                                                                ->default(Filament::getTenant()->id)
+                                                                                ->label('Tenant')
+                                                                        ];
+                                                                        return array_merge(ProductResource::getProductForm(),$tenantField);
+                                                                    })
+                                                                    ->createOptionUsing(function(array $data){
+                                                                        $product = Product::create($data);
+                                                                        return $product->id;
                                                                     }),
                                                             Forms\Components\TextInput::make('price')
                                                                     ->required()
                                                                     ->numeric()
+                                                                    ->prefix('RM ')
+                                                                    ->columnSpan([
+                                                                        'md' => 2
+                                                                    ])
                                                                     ->reactive()
-                                                                    ->afterStateUpdated(function(callable $get, Set $set){
-                                                                       $price = $get('price');
-                                                                       $quantity = $get('quantity');
-                                                                       $total = $price * $quantity;
-
-                                                                       $set('total',$total);
-                                                                    }),
+                                                                    ->afterStateUpdated(fn(Callable $get, Set $set) => self::updateFormData($get, $set)),
                                                             Forms\Components\TextInput::make('quantity')
                                                                     ->required()
                                                                     ->numeric()
+                                                                    ->columnSpan([
+                                                                        'md' => 1
+                                                                    ])
                                                                     ->reactive()
-                                                                    ->afterStateUpdated(function(callable $get, Set $set){
-                                                                        $price = $get('price');
-                                                                        $quantity = $get('quantity');
-                                                                        $total = $price * $quantity;
-
-                                                                        $set('total',$total);
-                                                                     }),
+                                                                    ->afterStateUpdated(fn(Callable $get, Set $set) => self::updateFormData($get, $set)),
                                                             Forms\Components\TextInput::make('total')
                                                                     ->required()
                                                                     ->numeric()
-                                                                    ->disabled(),
+                                                                    ->prefix('RM ')
+                                                                    ->disabled()
+                                                                    ->columnSpan([
+                                                                        'md' => 2
+                                                                    ]),
 
-                                ])->columns(4),
+                                ]),
 
 
 
                     ]),
+                Forms\Components\Section::make('Total Details')
+                    ->schema([
+                        Forms\Components\TextInput::make('total_amount')
+                            ->disabled()
+                            ->label('Sub Total')
+                            ->numeric()
+                            ->prefix('RM ')
+                            ->required()
+                            ->reactive()
+                            ->afterStateUpdated(function(Callable $get,Set $set){
+                                $discount = $get('discount') ?? 0;
+                                $total_amount = $get('total_amount') ?? 0;
+
+                                $set('nettotal',$total_amount - $discount);
+                            }),
+                        Forms\Components\TextInput::make('discount')
+                            ->label('Discount')
+                            ->numeric()
+                            ->prefix('RM ')
+                            ->required()
+                            ->reactive()
+                            ->afterStateUpdated(function(Callable $get,Set $set){
+                                $discount = $get('discount') ?? 0;
+                                $total_amount = $get('total_amount') ?? 0;
+
+                                $set('nettotal',$total_amount - $discount);
+                            }),
+                        Forms\Components\TextInput::make('nettotal')
+                            ->disabled()
+                            ->label('Net Total')
+                            ->numeric()
+                            ->prefix('RM ')
+                            ->required(),
+
+                    ])->columns(3),
+
             ]);
     }
 
@@ -182,5 +195,30 @@ class PurchaseResource extends Resource
             'create' => Pages\CreatePurchase::route('/create'),
             'edit' => Pages\EditPurchase::route('/{record}/edit'),
         ];
+    }
+
+    public static function updateFormData($get, $set)
+    {
+        // let's get all the form components..
+        $formData = $get("../../");
+        $allProducts = $formData['product'] ?? [];
+        $grandTotal = 0;
+        foreach($allProducts as $product)
+        {
+            $price = $product['price'] ?? 0;
+            $quantity = $product['quantity'] ?? 0;
+            $total = $price * $quantity;
+            $grandTotal += $total;
+        }
+
+        $price = $get('price');
+        $quantity = $get('quantity');
+        $total = $price * $quantity;
+
+        $set('total',$total);
+        $set("../../total_amount",$grandTotal);
+
+        $discount = $get("../../discount");
+        $set("../../nettotal",$grandTotal - $discount);
     }
 }
