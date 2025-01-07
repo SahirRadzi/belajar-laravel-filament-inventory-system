@@ -18,6 +18,7 @@ use Illuminate\Database\Eloquent\Builder;
 use App\Filament\Resources\PurchaseResource\Pages;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
 use App\Filament\Resources\PurchaseResource\RelationManagers;
+use App\Filament\Resources\PurchaseResource\RelationManagers\ProductsRelationManager;
 
 class PurchaseResource extends Resource
 {
@@ -126,7 +127,7 @@ class PurchaseResource extends Resource
                 Forms\Components\Section::make('Total Details')
                     ->schema([
                         Forms\Components\TextInput::make('total_amount')
-                            ->disabled()
+                            ->readOnly()
                             ->label('Sub Total')
                             ->numeric()
                             ->prefix('RM ')
@@ -151,7 +152,7 @@ class PurchaseResource extends Resource
                                 $set('nettotal',$total_amount - $discount);
                             }),
                         Forms\Components\TextInput::make('nettotal')
-                            ->disabled()
+                            ->readOnly()
                             ->label('Net Total')
                             ->numeric()
                             ->prefix('RM ')
@@ -166,13 +167,21 @@ class PurchaseResource extends Resource
     {
         return $table
             ->columns([
-                //
+                Tables\Columns\TextColumn::make('invoice_no')
+                    ->label('Invoice No.'),
+                Tables\Columns\TextColumn::make('provider.name')
+                    ->label('Provider'),
             ])
             ->filters([
                 //
             ])
             ->actions([
                 Tables\Actions\EditAction::make(),
+                Tables\Actions\Action::make('view_invoice')
+                    ->label('view invoice')
+                    ->icon('heroicon-o-document')
+                    ->color('warning')
+                    ->url(fn($record)=>self::getUrl("invoice",[ 'record' => $record->id]))
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
@@ -184,7 +193,7 @@ class PurchaseResource extends Resource
     public static function getRelations(): array
     {
         return [
-            //
+            ProductsRelationManager::make()
         ];
     }
 
@@ -194,6 +203,7 @@ class PurchaseResource extends Resource
             'index' => Pages\ListPurchases::route('/'),
             'create' => Pages\CreatePurchase::route('/create'),
             'edit' => Pages\EditPurchase::route('/{record}/edit'),
+            'invoice' => Pages\Invoice::route('/{record}/invoice')
         ];
     }
 
