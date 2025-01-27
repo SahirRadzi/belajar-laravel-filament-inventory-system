@@ -6,6 +6,7 @@ use Filament\Pages;
 use Filament\Panel;
 use Filament\Widgets;
 use App\Models\Tenant;
+use App\Filament\Pages\Auth\Login;
 use Filament\PanelProvider;
 use Filament\Support\Colors\Color;
 use Illuminate\Contracts\View\View;
@@ -28,7 +29,7 @@ class AdminPanelProvider extends PanelProvider
             ->default()
             ->id('admin')
             ->path('admin')
-            ->login()
+            ->login(Login::class)
             ->renderHook(
                 'panels::body.end',
                 fn (): View => view('filament.footer'),
