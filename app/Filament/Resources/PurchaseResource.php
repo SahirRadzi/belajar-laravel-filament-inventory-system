@@ -24,7 +24,7 @@ class PurchaseResource extends Resource
 {
     protected static ?string $model = Purchase::class;
 
-    protected static ?string $navigationIcon = 'heroicon-o-bolt';
+    protected static ?string $navigationIcon = 'heroicon-o-document-plus';
 
     public static function getNavigationLabel(): string
     {
