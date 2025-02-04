@@ -16,4 +16,9 @@ class Setting extends Model
     protected $casts =[
         'attributes' =>'array'
     ];
+
+    public function settings()
+    {
+        return $this->hasMany(TenantSetting::class);
+    }
 }

@@ -13,6 +13,10 @@ return new class extends Migration
     {
         Schema::create('tenant_settings', function (Blueprint $table) {
             $table->id();
+            $table->foreignId('tenant_id');
+            $table->foreignId('setting_id');
+            $table->text('value')->nullable();
+            $table->json('data')->nullable();
             $table->timestamps();
         });
     }
